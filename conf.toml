@@ -1,0 +1,13 @@
+
+known_hosts_path = "/home/user/.ssh/known_hosts"
+log_file = "healthcheck.log"
+
+[cowrie]
+	hosts = [
+		"localhost",
+	]
+	port = 2222
+	user = "root"
+	password = "1234"
+
+
