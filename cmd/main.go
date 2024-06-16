@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
@@ -92,6 +93,40 @@ func connect(host string, port int, config *ssh.ClientConfig) (bool, error) {
 
 }
 
+type Result struct {
+	Active int
+	Total  int
+	Info   map[string]string
+}
+
+func generateResponse(m *map[string]bool) Result {
+
+	nHoneypots := len(*m)
+	var activeHoneypots int
+	for _, v := range *m {
+		if v {
+			activeHoneypots++
+		}
+	}
+
+	info := make(map[string]string, nHoneypots)
+
+	for k, v := range *m {
+		switch v {
+		case true:
+			info[k] = "cowrie active"
+		case false:
+			info[k] = "cowrie not active"
+		}
+	}
+	result := Result{
+		Active: activeHoneypots,
+		Total:  nHoneypots,
+		Info:   info,
+	}
+	return result
+
+}
 func main() {
 
 	var conf HealthCheckConf
@@ -113,6 +148,8 @@ func main() {
 		panic(err)
 	}
 
-	log.Printf("honeypots: %v", h)
+	result := generateResponse(&h)
+	data, err := json.MarshalIndent(result, "", "\t")
+	fmt.Println(string(data))
 
 }

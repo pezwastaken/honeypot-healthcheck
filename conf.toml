@@ -1,10 +1,11 @@
 
-known_hosts_path = "/home/user/.ssh/known_hosts"
-log_file = "healthcheck.log"
+known_hosts_path = "/home/desire/.ssh/known_hosts"
+log_file = "/home/desire/honeypot-healthcheck/healthcheck.log"
 
 [cowrie]
 	hosts = [
 		"localhost",
+		"192.168.8.1"
 	]
 	port = 2222
 	user = "root"
