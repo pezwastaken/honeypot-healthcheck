@@ -3,11 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"os"
+
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
 	kh "golang.org/x/crypto/ssh/knownhosts"
-	"log"
-	"os"
 )
 
 type HealthCheckConf struct {
@@ -149,7 +150,12 @@ func main() {
 	}
 
 	result := generateResponse(&h)
-	data, err := json.MarshalIndent(result, "", "\t")
-	fmt.Println(string(data))
+	data, err := json.Marshal(result)
+	if err != nil {
+		log.Printf("error while marshaling result: %v", err)
+		panic(err)
+	}
+	log.SetFlags(0)
+	log.Println(string(data))
 
 }
