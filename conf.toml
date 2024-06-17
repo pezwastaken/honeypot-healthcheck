@@ -1,6 +1,6 @@
 
-known_hosts_path = "/home/desire/.ssh/known_hosts"
-log_file = "/home/desire/honeypot-healthcheck/healthcheck.log"
+known_hosts_path = "/home/user/.ssh/known_hosts"
+log_file = "/home/user/honeypot-healthcheck/healthcheck.log"
 
 [cowrie]
 	hosts = [
