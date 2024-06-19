@@ -69,37 +69,27 @@ func testHoneypots(conf *HealthCheckConf) (map[string]bool, error) {
 		// HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		HostKeyCallback:   hostKeyCallback,
 		HostKeyAlgorithms: []string{ssh.KeyAlgoED25519},
+		Timeout:           7 * time.Second,
 	}
 
 	var wg sync.WaitGroup
-	c := make(chan struct{}, 1)
 
-	go func() {
-		defer close(c)
-		for _, host := range cowrie.Hosts {
-			remote := host
-			wg.Add(1)
+	for _, host := range cowrie.Hosts {
+		remote := host
+		wg.Add(1)
 
-			go func() {
-				defer wg.Done()
-				ok, err := connect(remote, cowrie.Port, config)
-				if err != nil {
-					log.Printf("ERROR | couldn't connect to host %v:%v | %v", remote, cowrie.Port, err)
-				}
-				honeypots[remote] = ok
-			}()
-		}
-		wg.Wait()
-	}()
-
-	select {
-	case <-c:
-		return honeypots, nil
-	case <-time.After(time.Duration(5) * time.Second):
-		return honeypots, nil
-
+		go func() {
+			defer wg.Done()
+			ok, err := connect(remote, cowrie.Port, config)
+			if err != nil {
+				log.Printf("ERROR | couldn't connect to host %v:%v | %v", remote, cowrie.Port, err)
+			}
+			honeypots[remote] = ok
+		}()
 	}
+	wg.Wait()
 
+	return honeypots, nil
 }
 
 func connect(host string, port int, config *ssh.ClientConfig) (bool, error) {
