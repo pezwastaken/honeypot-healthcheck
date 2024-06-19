@@ -1,6 +1,6 @@
 MAIN_PATH := ./cmd/
 BINARY_NAME := healthcheck
-USER := user
+USER := user 
 HOUR_STEP := 6
 GO_PATH := go
 BINARY_PATH := /home/${USER}/honeypot-healthcheck/bin

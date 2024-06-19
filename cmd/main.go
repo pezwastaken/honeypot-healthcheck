@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
+	"time"
 
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/ssh"
@@ -69,16 +71,35 @@ func testHoneypots(conf *HealthCheckConf) (map[string]bool, error) {
 		HostKeyAlgorithms: []string{ssh.KeyAlgoED25519},
 	}
 
-	for _, host := range cowrie.Hosts {
+	var wg sync.WaitGroup
+	c := make(chan struct{}, 1)
 
-		ok, err := connect(host, cowrie.Port, config)
-		if err != nil {
-			log.Printf("ERROR | couldn't connect to host %v:%v | %v", host, cowrie.Port, err)
+	go func() {
+		defer close(c)
+		for _, host := range cowrie.Hosts {
+			remote := host
+			wg.Add(1)
+
+			go func() {
+				defer wg.Done()
+				ok, err := connect(remote, cowrie.Port, config)
+				if err != nil {
+					log.Printf("ERROR | couldn't connect to host %v:%v | %v", remote, cowrie.Port, err)
+				}
+				honeypots[remote] = ok
+			}()
 		}
-		honeypots[host] = ok
+		wg.Wait()
+	}()
+
+	select {
+	case <-c:
+		return honeypots, nil
+	case <-time.After(time.Duration(5) * time.Second):
+		return honeypots, nil
+
 	}
 
-	return honeypots, nil
 }
 
 func connect(host string, port int, config *ssh.ClientConfig) (bool, error) {
