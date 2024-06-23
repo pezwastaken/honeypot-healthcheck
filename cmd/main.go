@@ -55,6 +55,7 @@ func testHoneypots(conf *HealthCheckConf) (map[string]bool, error) {
 	cowrie := conf.Cowrie
 
 	var honeypots map[string]bool = make(map[string]bool)
+	var mutex sync.Mutex
 
 	hostKeyCallback, err := kh.New(conf.KHPath)
 	if err != nil {
@@ -84,6 +85,8 @@ func testHoneypots(conf *HealthCheckConf) (map[string]bool, error) {
 			if err != nil {
 				log.Printf("ERROR | couldn't connect to host %v:%v | %v", remote, cowrie.Port, err)
 			}
+			mutex.Lock()
+			defer mutex.Unlock()
 			honeypots[remote] = ok
 		}()
 	}
@@ -126,9 +129,9 @@ func generateResponse(m *map[string]bool) Result {
 	for k, v := range *m {
 		switch v {
 		case true:
-			info[k] = "cowrie active"
+			info[k] = "ok"
 		case false:
-			info[k] = "cowrie not active"
+			info[k] = "can't be accessed"
 		}
 	}
 	result := Result{
